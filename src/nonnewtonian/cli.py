@@ -81,6 +81,7 @@ def cmd_seed_import(args: argparse.Namespace) -> int:
         print("\n(dry run — no database written)")
         return 0
 
+    Path(args.db).resolve().parent.mkdir(parents=True, exist_ok=True)
     conn = db_mod.init_db(args.db, now=now)
     db_mod.assert_wal(conn)
     report = seed_import(
