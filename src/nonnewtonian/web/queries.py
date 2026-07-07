@@ -85,6 +85,24 @@ def _split_paragraphs(text: str) -> list[str]:
     return [p.strip() for p in (text or "").split("\n\n") if p.strip()]
 
 
+def safe_http_url(url: str | None) -> str | None:
+    """Return the URL only if it's a plain http(s) link, else None.
+
+    Jinja autoescaping neutralizes HTML metacharacters but NOT dangerous
+    URL schemes, so a stored ``javascript:``/``data:`` value would become
+    live XSS the moment it lands in an href (M3 review, confirmed
+    critical).  Every href built from stored/user URLs must pass through
+    here.  Guarded at the display layer so M4 student-submitted photo
+    URLs are covered by the same gate."""
+    if not url:
+        return None
+    stripped = url.strip()
+    low = stripped.lower()
+    if low.startswith("http://") or low.startswith("https://"):
+        return stripped
+    return None
+
+
 def _row_to_entry(conn, row) -> DisplayEntry:
     entry = DisplayEntry(
         id=row["id"],
@@ -104,7 +122,7 @@ def _row_to_entry(conn, row) -> DisplayEntry:
         (row["id"],),
     ):
         entry.photos.append(DisplayPhoto(
-            file_path=p["file_path"], original_url=p["original_url"],
+            file_path=p["file_path"], original_url=safe_http_url(p["original_url"]),
             attribution=p["attribution"], license=p["license"],
             license_verified=bool(p["license_verified"]),
             is_primary=bool(p["is_primary"]),
@@ -154,7 +172,7 @@ def all_approved_scientists(conn, search: str | None = None) -> list[DisplayEntr
     if search:
         sql += " AND scientist_name LIKE ? "
         params.append(f"%{search}%")
-    sql += " ORDER BY scientist_name COLLATE NOCASE"
+    sql += " ORDER BY scientist_name COLLATE NOCASE, id"  # id tie-breaks: stable primary writeup
     seen: set[str] = set()
     out: list[DisplayEntry] = []
     for row in conn.execute(sql, params):

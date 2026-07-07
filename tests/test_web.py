@@ -129,6 +129,38 @@ def test_search(approved_client):
     assert b"Ronald McNair" not in r.data
 
 
+def test_admin_nonascii_token_is_404_not_500(client):
+    # hmac.compare_digest raises TypeError on non-ASCII str; must 404, not 500.
+    assert client.get("/admin/café").status_code == 404
+    assert client.get("/admin/中文").status_code == 404
+
+
+def test_photo_origin_url_scheme_is_sanitized(app):
+    # A stored javascript:/data: photo URL must not reach an href.
+    from nonnewtonian import db as db_mod
+    conn = db_mod.connect(app.config["DB_PATH"])
+    eid = conn.execute("SELECT id FROM entries WHERE scientist_slug='emmy-noether'").fetchone()[0]
+    conn.execute("UPDATE entries SET status='approved', communal_status='approved' WHERE id=?", (eid,))
+    conn.execute("INSERT INTO photos(entry_id,original_url,file_path,is_primary,fetch_status,license_verified) "
+                 "VALUES(?,?,?,1,'stored',0)", (eid, "javascript:alert(document.cookie)//", "ab/cd.jpg"))
+    conn.commit(); conn.close()
+    html = app.test_client().get("/scientists/emmy-noether").data
+    assert b"javascript:alert" not in html
+
+
+def test_healthz_fails_on_schemaless_db(tmp_path):
+    empty = tmp_path / "empty.db"
+    empty.write_bytes(b"")  # exists but no schema
+    # a bare file with no WAL trips preflight; use a connected-but-empty DB instead
+    import sqlite3
+    sqlite3.connect(empty).close()
+    from nonnewtonian import db as db_mod
+    db_mod.connect(empty).execute("PRAGMA journal_mode=WAL").close()
+    app = create_app({"DB_PATH": str(empty), "PHOTO_DIR": str(tmp_path / "p"),
+                      "ADMIN_TOKEN": TOKEN, "TESTING": True, "WTF_CSRF_ENABLED": False})
+    assert app.test_client().get("/healthz").status_code == 503
+
+
 def test_attribution_mode_controls_displayed_credit():
     from nonnewtonian.web.queries import DisplayEntry
     e = DisplayEntry(id=1, name="X", slug="x", description=[], sources=[],

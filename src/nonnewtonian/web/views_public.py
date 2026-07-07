@@ -94,7 +94,9 @@ def privacy():
 @bp.route("/healthz")
 def healthz():
     try:
-        _db().execute("SELECT 1")
+        # Touch a real table so a missing/half-applied schema fails the
+        # check instead of reporting healthy (M3 review).
+        _db().execute("SELECT 1 FROM entries LIMIT 1")
     except Exception:  # pragma: no cover
         abort(503)
     return "ok", 200
@@ -114,8 +116,15 @@ def _entry_image_paths(entry: q.DisplayEntry) -> list[Path]:
     photo_dir = Path(current_app.config["PHOTO_DIR"]).resolve()
     paths = []
     for photo_row in entry.photos:
-        if photo_row.file_path:
-            paths.append(photo_dir / photo_row.file_path)
+        if not photo_row.file_path:
+            continue
+        # file_path is always a content-hash relative path today, but keep
+        # slide generation inside PHOTO_DIR defensively (absolute or ../
+        # paths would otherwise escape via Path join). Skip anything that
+        # resolves outside the tree rather than embedding it in a .pptx.
+        candidate = (photo_dir / photo_row.file_path).resolve()
+        if candidate == photo_dir or photo_dir in candidate.parents:
+            paths.append(candidate)
     return paths
 
 

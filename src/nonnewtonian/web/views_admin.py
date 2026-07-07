@@ -20,7 +20,10 @@ bp = Blueprint("admin", __name__)
 
 def _check_token(token: str) -> None:
     expected = current_app.config["ADMIN_TOKEN"]
-    if not hmac.compare_digest(token, expected):
+    # Compare as bytes: hmac.compare_digest raises TypeError on non-ASCII
+    # str input, which would 500 (an existence oracle) instead of 404
+    # (M3 review, confirmed). utf-8 bytes compare safely and constant-time.
+    if not hmac.compare_digest(token.encode("utf-8"), expected.encode("utf-8")):
         abort(404)  # do not reveal that the path exists
 
 
