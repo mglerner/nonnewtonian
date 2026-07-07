@@ -22,5 +22,19 @@
     <p class="small muted">Collected with
       <a href="{{ url_for('public.index') }}" target="_blank" rel="noopener">{{ site_name }}</a>.</p>
   </div></main>
+  <script>
+    // Report our height to the host page so the embed snippet can size the
+    // iframe to fit -- no inner scrollbar, no cut-off. Height only; no
+    // sensitive data, so posting to '*' is fine.
+    (function () {
+      var slug = {{ coll.slug|tojson }};
+      function report() {
+        parent.postMessage({ nnpEmbed: slug, height: document.documentElement.scrollHeight }, "*");
+      }
+      window.addEventListener("load", report);
+      if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+      else window.addEventListener("resize", report);
+    })();
+  </script>
 </body>
 </html>

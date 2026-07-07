@@ -251,8 +251,28 @@ def _self_mailto(coll, student_url, manage_url) -> str:
 
 
 def _embed_snippet(slug: str) -> str:
+    """A self-contained snippet for a WordPress 'Custom HTML' block: the
+    iframe plus a tiny listener that resizes it to the content height the
+    embed page reports, so there's no inner scrollbar or cut-off."""
     url = _abs(url_for("cls.embed", slug=slug))
-    return f'<iframe src="{url}" style="width:100%;border:0;" title="Class collection"></iframe>'
+    origin = current_app.config.get("SITE_URL", "").rstrip("/")
+    frame_id = f"nnp-{slug}"
+    # Only accept height messages from our own origin when SITE_URL is set.
+    origin_guard = (f'if (e.origin !== {origin!r}) return; '
+                    if origin else '')
+    return (
+        f'<iframe id="{frame_id}" src="{url}" '
+        f'style="width:100%;border:0;min-height:400px" '
+        f'title="Class collection" loading="lazy"></iframe>\n'
+        f'<script>\n'
+        f'window.addEventListener("message", function (e) {{ '
+        f'{origin_guard}'
+        f'var d = e.data; '
+        f'if (d && d.nnpEmbed === "{slug}" && d.height) {{ '
+        f'var f = document.getElementById("{frame_id}"); '
+        f'if (f) f.style.height = d.height + "px"; }} }});\n'
+        f'</script>'
+    )
 
 
 def _safe_unlink(base, relpath):

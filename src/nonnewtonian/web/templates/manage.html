@@ -62,9 +62,24 @@
   </form>
 
   <h2>Embed on your own site</h2>
-  <p class="small">Paste this where you want the class collection to appear (a WordPress "Custom HTML"
-    block works). Full guidance in M6.</p>
-  <textarea readonly rows="3" class="mono">{{ embed_snippet }}</textarea>
+  <p class="small">Show this class collection inside a page you already run. It updates live as you
+    approve submissions, and the box resizes itself to fit — no scrollbar, no cut-off.</p>
+  <details class="embed-help">
+    <summary>How to add it to WordPress</summary>
+    <ol class="small">
+      <li>Edit the page or post where you want it.</li>
+      <li>Add a block and choose <strong>Custom HTML</strong> (search "custom html" in the block picker).</li>
+      <li>Paste the snippet below into that block.</li>
+      <li>Preview or publish. That's it — no plugin needed.</li>
+    </ol>
+    <p class="small muted">On WordPress.com's free plan, Custom HTML blocks are limited; a self-hosted
+      WordPress.org site or most other CMSes accept it as-is. If your host strips <code>&lt;script&gt;</code>,
+      the collection still shows — it just won't auto-resize, so set a fixed height on the iframe.</p>
+  </details>
+  <div class="copyrow">
+    <textarea readonly rows="6" class="mono" id="embed-snippet">{{ embed_snippet }}</textarea>
+    <button type="button" data-copy="embed-snippet">Copy</button>
+  </div>
 
   <h2 class="danger-h">Delete this class</h2>
   <form method="post" action="{{ url_for('manage.delete', token=token) }}" class="stack"

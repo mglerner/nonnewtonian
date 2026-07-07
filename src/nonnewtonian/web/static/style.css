@@ -158,3 +158,8 @@ button.danger { background: #d9534f; border-color: #d9534f; }
 textarea.mono, .mono { font-family: ui-monospace, Menlo, monospace; font-size: .8rem; }
 .hp { position: absolute; left: -9999px; height: 0; overflow: hidden; }
 body.embed header.site, body.embed footer.site { display: none; }
+
+/* --- M6: embed guidance --- */
+details.embed-help { margin: .6rem 0; border: 1px solid var(--rule); border-radius: 8px; padding: .4rem .8rem; }
+details.embed-help summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+details.embed-help ol { margin: .5rem 0 .3rem 1.2rem; }
