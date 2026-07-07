@@ -210,9 +210,13 @@ def delete(token):
     # candidate paths, delete the rows, then unlink the now-unreferenced.
     from pathlib import Path
     photo_dir = Path(current_app.config["PHOTO_DIR"]).resolve()
+    # ALL of this class's photo files are unlink candidates; the post-DELETE
+    # refcount below keeps any file a surviving communal clone (or another
+    # class) still references. (Filtering to communal_status='none' here
+    # orphaned files of shared-but-unapproved entries — M5 review.)
     candidates = {row["file_path"] for row in conn.execute(
         "SELECT ph.file_path FROM photos ph JOIN entries e ON ph.entry_id=e.id "
-        "WHERE e.collection_id=? AND ph.file_path IS NOT NULL AND e.communal_status='none'",
+        "WHERE e.collection_id=? AND ph.file_path IS NOT NULL",
         (coll["id"],))}
     conn.execute("DELETE FROM collections WHERE id=?", (coll["id"],))  # cascades photos rows
     for path in candidates:

@@ -58,7 +58,7 @@ def textbooks():
 @bp.route("/textbooks/<slug>")
 def textbook(slug):
     conn = _db()
-    tb = q.textbook_by_slug(conn, slug)
+    tb = q.public_textbook_by_slug(conn, slug)
     if not tb:
         abort(404)
     chapters = q.textbook_chapters(conn, tb["id"])
@@ -141,7 +141,7 @@ def scientist_slide(slug):
 @bp.route("/textbooks/<slug>/deck.pptx")
 def textbook_deck(slug):
     conn = _db()
-    tb = q.textbook_by_slug(conn, slug)
+    tb = q.public_textbook_by_slug(conn, slug)
     if not tb:
         abort(404)
     chapters = q.textbook_chapters(conn, tb["id"])

@@ -122,3 +122,53 @@ def test_custom_textbook_hidden_from_public_until_it_has_communal_content(client
     client.post("/new", data={"name": "Chem", "textbook_mode": "chapters",
                               "custom_title": "Private Chem Book", "chapter_lines": "Atoms\nBonds"})
     assert b"Private Chem Book" not in client.get("/textbooks").data
+
+
+def test_custom_textbook_detail_and_deck_also_gated(client, app):
+    # M5 review: the detail page + deck must not serve a private custom
+    # textbook by direct slug, matching the list-view gate.
+    client.post("/new", data={"name": "Chem", "textbook_mode": "chapters",
+                              "custom_title": "Private Chem Book", "chapter_lines": "Atoms\nBonds"})
+    slug = _conn(app).execute("SELECT slug FROM textbooks WHERE is_builtin=0").fetchone()[0]
+    assert client.get(f"/textbooks/{slug}").status_code == 404
+    assert client.get(f"/textbooks/{slug}/deck.pptx").status_code == 404
+    # builtin remains reachable
+    assert client.get("/textbooks/bk").status_code == 200
+
+
+def test_seed_moderate_cannot_strand_an_approved_clone(client, app):
+    tok, slug, eid = _class_with_shared_pending_entry(client, app)
+    client.post(f"/admin/{TOKEN}/shared/{eid}/approve")
+    clone_id = _conn(app).execute(
+        "SELECT id FROM entries WHERE collection_id IS NULL AND adopted_from_entry_id=?",
+        (eid,)).fetchone()[0]
+    # the seed reject route must NOT touch an already-approved clone
+    assert client.post(f"/admin/{TOKEN}/entry/{clone_id}/reject").status_code == 404
+    assert client.get("/scientists/emmy-noether").status_code == 200  # still live
+
+
+def test_admin_can_take_down_a_published_communal_entry(client, app):
+    tok, slug, eid = _class_with_shared_pending_entry(client, app)
+    client.post(f"/admin/{TOKEN}/shared/{eid}/approve")
+    clone_id = _conn(app).execute(
+        "SELECT id FROM entries WHERE collection_id IS NULL AND adopted_from_entry_id=?",
+        (eid,)).fetchone()[0]
+    assert client.get("/scientists/emmy-noether").status_code == 200
+    r = client.post(f"/admin/{TOKEN}/communal/{clone_id}/delete")
+    assert r.status_code == 302
+    assert client.get("/scientists/emmy-noether").status_code == 404  # taken down
+    assert _conn(app).execute("SELECT count(*) FROM entries WHERE id=?", (clone_id,)).fetchone()[0] == 0
+
+
+def test_delete_class_reclaims_shared_pending_photo_file(client, app, tmp_path):
+    # M5 review: a shared-but-unapproved entry's photo file must be
+    # unlinked on class delete (not orphaned).
+    photo_dir = tmp_path / "photos"; photo_dir.mkdir(exist_ok=True)
+    (photo_dir / "cd").mkdir(); (photo_dir / "cd" / "h.jpg").write_bytes(b"x")
+    tok, slug, eid = _class_with_shared_pending_entry(client, app)  # entry is share-pending
+    conn = _conn(app)
+    conn.execute("INSERT INTO photos(entry_id,file_path,is_primary,fetch_status) "
+                 "VALUES(?,?,1,'stored')", (eid, "cd/h.jpg"))
+    conn.commit(); conn.close()
+    client.post(f"/manage/{tok}/delete", data={"confirm": slug})
+    assert not (photo_dir / "cd" / "h.jpg").exists()  # reclaimed, not orphaned

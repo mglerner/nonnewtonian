@@ -206,6 +206,25 @@ def textbook_by_slug(conn, slug: str) -> dict | None:
     return dict(row) if row else None
 
 
+def public_textbook_by_slug(conn, slug: str) -> dict | None:
+    """Like textbook_by_slug, but only for textbooks that are allowed to
+    surface publicly (builtin, or a custom textbook that has approved
+    communal content).  The detail page + deck must use this so they
+    can't serve a private class textbook the list view correctly hides
+    (M5 review) — one gate, no drift."""
+    tb = textbook_by_slug(conn, slug)
+    if tb is None:
+        return None
+    if tb["is_builtin"]:
+        return tb
+    has_public = conn.execute(
+        "SELECT 1 FROM entries e JOIN placements p ON p.entry_id=e.id "
+        "WHERE p.textbook_id=? AND e.collection_id IS NULL "
+        "AND e.status='approved' AND e.communal_status='approved' LIMIT 1",
+        (tb["id"],)).fetchone()
+    return tb if has_public else None
+
+
 @dataclass
 class ChapterBlock:
     chapter: int

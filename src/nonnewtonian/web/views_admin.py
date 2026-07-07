@@ -8,6 +8,7 @@ Constant-time token comparison; every mutating action is POST.
 from __future__ import annotations
 
 import hmac
+from pathlib import Path
 
 from flask import (
     Blueprint, abort, current_app, redirect, render_template, request, url_for,
@@ -15,6 +16,7 @@ from flask import (
 
 from .. import collections_repo as repo
 from . import queries as q
+from .views_manage import _safe_unlink
 
 bp = Blueprint("admin", __name__)
 
@@ -54,10 +56,37 @@ def dashboard(token):
         "ORDER BY e.scientist_name COLLATE NOCASE"
     ).fetchall()
     shared_entries = [(q._row_to_entry(conn, r), r["class_name"]) for r in shared]
+    published = [q._row_to_entry(conn, r) for r in conn.execute(
+        "SELECT * FROM entries WHERE collection_id IS NULL AND communal_status='approved' "
+        "ORDER BY scientist_name COLLATE NOCASE")]
     return render_template(
         "admin.html", token=token, pending=pending_entries,
-        approved_count=approved_count, shared=shared_entries,
+        approved_count=approved_count, shared=shared_entries, published=published,
     )
+
+
+@bp.route("/admin/<token>/communal/<int:entry_id>/delete", methods=["POST"])
+def delete_communal(token, entry_id):
+    """Take down a published communal entry (seed or promoted clone) — the
+    remedy for a later copyright/privacy complaint (M5 review). Removes
+    the entry (cascading its placements/photos) and refcount-unlinks any
+    photo file nothing else references."""
+    _check_token(token)
+    conn = _db()
+    row = conn.execute(
+        "SELECT id FROM entries WHERE id=? AND collection_id IS NULL", (entry_id,)
+    ).fetchone()
+    if not row:
+        abort(404)
+    photo_dir = Path(current_app.config["PHOTO_DIR"]).resolve()
+    paths = {r["file_path"] for r in conn.execute(
+        "SELECT file_path FROM photos WHERE entry_id=? AND file_path IS NOT NULL", (entry_id,))}
+    conn.execute("DELETE FROM entries WHERE id=?", (entry_id,))
+    for p in paths:
+        if not conn.execute("SELECT 1 FROM photos WHERE file_path=? LIMIT 1", (p,)).fetchone():
+            _safe_unlink(photo_dir, p)
+    conn.commit()
+    return redirect(url_for("admin.dashboard", token=token))
 
 
 @bp.route("/admin/<token>/shared/<int:entry_id>/<action>", methods=["POST"])
@@ -94,8 +123,14 @@ def moderate(token, entry_id, action):
     if action not in ("approve", "reject"):
         abort(400)
     conn = _db()
+    # Only act on entries still awaiting communal review. Without the
+    # communal_status='pending' guard this route also matched already-
+    # approved communal CLONES (also collection_id IS NULL), letting a
+    # reject strand a clone in an unrecoverable state (M5 review). Taking
+    # down an already-published entry goes through delete_communal.
     row = conn.execute(
-        "SELECT id FROM entries WHERE id=? AND collection_id IS NULL", (entry_id,)
+        "SELECT id FROM entries WHERE id=? AND collection_id IS NULL "
+        "AND communal_status='pending'", (entry_id,)
     ).fetchone()
     if not row:
         abort(404)

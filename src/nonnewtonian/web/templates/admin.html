@@ -52,4 +52,23 @@
       </div>
     {% endfor %}
   {% endif %}
+
+  <h2>Published on the communal site</h2>
+  <p class="muted">{{ published|length }} live. Use this to take one down (a copyright or privacy
+    request); it's removed from the public pages and its photo files reclaimed if nothing else uses them.</p>
+  <details>
+    <summary class="small">Show published entries</summary>
+    {% for entry in published %}
+      <div class="review">
+        <strong>{{ entry.name }}</strong>
+        {% if entry.is_seed %}<span class="pill">seed</span>{% endif %}
+        <form class="inline" method="post"
+              action="{{ url_for('admin.delete_communal', token=token, entry_id=entry.id) }}"
+              onsubmit="return confirm('Take down {{ entry.name }} from the communal site?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="danger">Take down</button>
+        </form>
+      </div>
+    {% endfor %}
+  </details>
 {% endblock %}
