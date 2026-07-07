@@ -1,0 +1,26 @@
+{% from "_macros.html" import class_entry_card %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ coll.name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="embed">
+  <main><div class="wrap">
+    <h1>{{ coll.name }}</h1>
+    {% for ch in chapters %}
+      {% if ch.entries %}
+        <section class="chapter">
+          <div class="chhead"><span class="num">Chapter {{ ch.chapter }}</span>
+            <span class="topics">{{ ch.topics }}</span></div>
+          {% for entry in ch.entries %}{{ class_entry_card(entry, coll, slide=False) }}{% endfor %}
+        </section>
+      {% endif %}
+    {% endfor %}
+    <p class="small muted">Collected with
+      <a href="{{ url_for('public.index') }}" target="_blank" rel="noopener">{{ site_name }}</a>.</p>
+  </div></main>
+</body>
+</html>

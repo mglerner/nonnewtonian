@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% from "_macros.html" import class_entry_card %}
+{% block title %}Manage "{{ coll.name }}" — {{ site_name }}{% endblock %}
+{% block content %}
+  <h1>{{ coll.name }}</h1>
+  <p class="muted">{{ pending|length }} waiting for review &middot; {{ approved }} approved &amp; live.
+    <a href="{{ url_for('cls.page', slug=coll.slug) }}">View the class page &rarr;</a></p>
+
+  <div class="linkbox">
+    <p class="small">Student submission link:</p>
+    <div class="copyrow">
+      <input readonly value="{{ student_url }}" id="student-url">
+      <button type="button" data-copy="student-url">Copy</button>
+    </div>
+  </div>
+
+  <h2>Waiting for review</h2>
+  {% if not pending %}
+    <p class="gap">Nothing to review right now. When a student submits, it shows up here first —
+      nothing goes public until you approve it.</p>
+  {% else %}
+    {% for entry in pending %}
+      <div class="review">
+        {{ class_entry_card(entry, coll, slide=False) }}
+        {% if entry.placements %}
+          <p class="small"><strong>Placed in:</strong>
+            {% for pl in entry.placements %}ch.&nbsp;{{ pl.chapter }}{% if pl.section_label %} ({{ pl.section_label }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+        {% endif %}
+        <form method="post" action="{{ url_for('manage.moderate', token=token, entry_id=entry.id, action='approve') }}" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          {% if coll.share_default %}
+            <label class="radio small"><input type="checkbox" name="share_communal">
+              also offer to the communal site</label>
+          {% endif %}
+          <button type="submit">Approve</button>
+        </form>
+        <form method="post" action="{{ url_for('manage.moderate', token=token, entry_id=entry.id, action='reject') }}" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="danger">Reject</button>
+        </form>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <h2>Settings</h2>
+  <form method="post" action="{{ url_for('manage.settings', token=token) }}" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label class="radio"><input type="checkbox" name="submissions_open" {{ 'checked' if coll.submissions_open }}>
+      Accept new student submissions</label>
+    <label class="radio"><input type="checkbox" name="allow_photo_upload" {{ 'checked' if coll.allow_photo_upload }}>
+      Allow students to upload a photo file (otherwise, link only)</label>
+    <label class="radio"><input type="checkbox" name="share_default" {{ 'checked' if coll.share_default }}>
+      Offer the communal-share option when approving</label>
+    <label>Most a student may reveal of their name
+      <select name="max_attribution">
+        {% for m in ['anonymous', 'first_initial', 'full'] %}
+          <option value="{{ m }}" {{ 'selected' if coll.max_attribution == m }}>{{ m.replace('_', ' ') }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit">Save settings</button>
+  </form>
+
+  <h2>Embed on your own site</h2>
+  <p class="small">Paste this where you want the class collection to appear (a WordPress "Custom HTML"
+    block works). Full guidance in M6.</p>
+  <textarea readonly rows="3" class="mono">{{ embed_snippet }}</textarea>
+
+  <h2 class="danger-h">Delete this class</h2>
+  <form method="post" action="{{ url_for('manage.delete', token=token) }}" class="stack"
+        onsubmit="return confirm('Delete this class and all its submissions? This cannot be undone.');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Type the class slug <code>{{ coll.slug }}</code> to confirm
+      <input name="confirm" autocomplete="off"></label>
+    <button type="submit" class="danger">Delete permanently</button>
+  </form>
+
+  <script>
+    document.querySelectorAll('[data-copy]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var el = document.getElementById(b.dataset.copy);
+        el.select(); navigator.clipboard.writeText(el.value);
+        var t = b.textContent; b.textContent = 'Copied!';
+        setTimeout(function () { b.textContent = t; }, 1200);
+      });
+    });
+  </script>
+{% endblock %}

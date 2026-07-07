@@ -25,7 +25,7 @@ def app(tmp_path):
     conn.close()
     app = create_app({
         "DB_PATH": str(db_path), "PHOTO_DIR": str(tmp_path / "photos"),
-        "ADMIN_TOKEN": TOKEN, "TESTING": True,
+        "ADMIN_TOKEN": TOKEN, "TESTING": True, "WTF_CSRF_ENABLED": False,
     })
     return app
 

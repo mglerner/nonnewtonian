@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Deleted — {{ site_name }}{% endblock %}
+{% block content %}
+  <h1>"{{ name }}" has been deleted</h1>
+  <p class="muted">The class and all of its submissions are gone. If any writeups had been shared to
+    the communal site and approved, those copies remain there under their own license.</p>
+  <p class="actions"><a class="btn" href="{{ url_for('public.index') }}">Back to the home page</a></p>
+{% endblock %}

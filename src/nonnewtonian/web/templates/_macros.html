@@ -16,6 +16,30 @@
   </div>
 {% endmacro %}
 
+{% macro class_entry_card(entry, coll, slide=True) %}
+  <div class="entry">
+    {{ portrait(entry) }}
+    <div class="body">
+      <p class="name">{{ entry.name }}</p>
+      <div class="desc">
+        {% for para in entry.description %}<p>{{ para }}</p>{% endfor %}
+      </div>
+      {% if entry.why_chapter %}<p class="small"><strong>Why here:</strong> {{ entry.why_chapter }}</p>{% endif %}
+      {% if entry.sources %}
+        <p class="meta"><strong>Sources:</strong>
+          {% for s in entry.sources %}{{ s }}{% if not loop.last %} &middot; {% endif %}{% endfor %}
+        </p>
+      {% endif %}
+      {% if entry.displayed_credit() %}<p class="meta"><span class="credit">Contributed by {{ entry.displayed_credit() }}.</span></p>{% endif %}
+      {% if slide %}
+        <p class="actions">
+          <a href="{{ url_for('cls.entry_slide', slug=coll.slug, entry_id=entry.id) }}">Download slide (.pptx)</a>
+        </p>
+      {% endif %}
+    </div>
+  </div>
+{% endmacro %}
+
 {% macro entry_card(entry, show_placements=False) %}
   <div class="entry">
     {{ portrait(entry) }}

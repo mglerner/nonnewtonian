@@ -6,7 +6,7 @@
   <p class="muted">{{ pending|length }} entries awaiting review &middot; {{ approved_count }} approved and live.</p>
 
   {% if pending %}
-    <form class="inline" method="post" action="{{ url_for('admin.approve_all_seeds', token=token) }}">
+    <form class="inline" method="post" action="{{ url_for('admin.approve_all_seeds', token=token) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit">Approve all seeded entries</button>
     </form>
   {% else %}
@@ -17,10 +17,10 @@
     <div style="border:1px solid var(--rule);border-radius:8px;padding:.6rem 1rem;margin:1rem 0;">
       {{ entry_card(entry, show_placements=True) }}
       <div class="admin-actions">
-        <form class="inline" method="post" action="{{ url_for('admin.moderate', token=token, entry_id=entry.id, action='approve') }}">
+        <form class="inline" method="post" action="{{ url_for('admin.moderate', token=token, entry_id=entry.id, action='approve') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit">Approve &amp; publish</button>
         </form>
-        <form class="inline" method="post" action="{{ url_for('admin.moderate', token=token, entry_id=entry.id, action='reject') }}">
+        <form class="inline" method="post" action="{{ url_for('admin.moderate', token=token, entry_id=entry.id, action='reject') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="secondary">Reject</button>
         </form>
       </div>

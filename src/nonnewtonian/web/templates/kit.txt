@@ -1,0 +1,30 @@
+{{ coll.name }} — {{ site_name }} class kit
+{{ '=' * 60 }}
+
+STUDENT SUBMISSION LINK (share with your class):
+{{ student_url }}
+
+YOUR PRIVATE MANAGEMENT LINK (keep this to yourself):
+{{ manage_url }}
+
+
+SUGGESTED ASSIGNMENT TEXT (edit to taste)
+------------------------------------------
+Find a scientist who contributed to something we study in this course and
+who is NOT already in our class collection. Pick the chapter their work
+connects to, then write a short description (a paragraph or two) of what
+they did and why it matters. Add a photo and your sources if you can.
+Submit it here:
+
+{{ student_url }}
+
+Your submission won't appear until I approve it.
+
+
+HOW IT WORKS
+------------
+- Students submit through the link above.
+- You review each submission on your management page before anything is
+  public. Nothing is shown without your approval.
+- Approved scientists appear on your class page, indexed by chapter, and
+  you can download a slide or the whole-class deck.

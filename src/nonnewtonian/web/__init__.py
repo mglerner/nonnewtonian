@@ -11,11 +11,21 @@ from __future__ import annotations
 
 import datetime as _dt
 import os
+import secrets
 from pathlib import Path
 
 from flask import Flask, g
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_wtf.csrf import CSRFProtect
 
 from .. import db as db_mod
+
+csrf = CSRFProtect()
+# In-memory rate-limit store: intentional for a single small VPS (one
+# process). If M7 ever runs multiple workers, switch storage_uri to a
+# shared backend so limits are counted across them.
+limiter = Limiter(key_func=get_remote_address, default_limits=[], storage_uri="memory://")
 
 
 def _utcnow() -> str:
@@ -28,13 +38,23 @@ def create_app(config: dict | None = None) -> Flask:
         DB_PATH=os.environ.get("NNP_DB", "data/app.db"),
         PHOTO_DIR=os.environ.get("NNP_PHOTOS", "data/photos"),
         ADMIN_TOKEN=os.environ.get("NNP_ADMIN_TOKEN", "dev-admin-token"),
+        SECRET_KEY=os.environ.get("NNP_SECRET_KEY", secrets.token_hex(32)),
         SITE_NAME="NonNewtonian Physicists",
+        MAX_CONTENT_LENGTH=10 * 1024 * 1024,  # cap upload bodies
+        SITE_URL=os.environ.get("NNP_SITE_URL", ""),
+        SMTP_CONFIGURED=False,
     )
     if config:
         app.config.update(config)
 
     # Startup preflight: fail loudly at boot, not at request time.
     _preflight(app)
+
+    csrf.init_app(app)
+    # Rate-limit storage: in-memory by default (fine for one small VPS);
+    # note for M7: put Werkzeug ProxyFix in front so the limiter keys on
+    # the real client IP, not Caddy's loopback address.
+    limiter.init_app(app)
 
     def get_db():
         if "db" not in g:
@@ -50,9 +70,11 @@ def create_app(config: dict | None = None) -> Flask:
     app.get_db = get_db  # type: ignore[attr-defined]
     app.utcnow = _utcnow  # type: ignore[attr-defined]
 
-    from . import views_public, views_admin
+    from . import views_public, views_admin, views_manage, views_class
     app.register_blueprint(views_public.bp)
     app.register_blueprint(views_admin.bp)
+    app.register_blueprint(views_manage.bp)
+    app.register_blueprint(views_class.bp)
 
     return app
 

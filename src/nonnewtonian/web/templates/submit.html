@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Add a scientist — {{ coll.name }}{% endblock %}
+{% block content %}
+  <h1>Add a scientist to {{ coll.name }}</h1>
+  {% if not coll.submissions_open %}
+    <p class="formerror">This class isn't accepting new submissions right now.</p>
+  {% else %}
+  <p class="muted">Your teacher reviews every submission before it appears. Pick someone who isn't
+    already in your class's collection.</p>
+  {% if error %}<p class="formerror">{{ error }}</p>{% endif %}
+
+  <form method="post" action="{{ url_for('cls.submit_post', slug=coll.slug) }}"
+        enctype="multipart/form-data" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="form_ts" value="{{ form_ts }}">
+    <div class="hp" aria-hidden="true">
+      <label>Leave this blank<input name="website" tabindex="-1" autocomplete="off"></label>
+    </div>
+
+    <label>Scientist's name *
+      <input name="scientist_name" required value="{{ values.get('scientist_name', '') }}"></label>
+
+    {% if toc %}
+      <label>Which chapter does this scientist fit? *
+        <select name="chapter" required>
+          <option value="">-- choose a chapter --</option>
+          {% for row in toc %}
+            <option value="{{ row.chapter }}" {{ 'selected' if values.get('chapter') == row.chapter|string }}>
+              Ch {{ row.chapter }} &mdash; {{ row.topics }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Section <span class="small">(optional, e.g. 12.3)</span>
+        <input name="section" value="{{ values.get('section', '') }}"></label>
+    {% endif %}
+
+    <label>Description * <span class="small">(a paragraph or two — what they did and why it matters)</span>
+      <textarea name="description" rows="6" required>{{ values.get('description', '') }}</textarea></label>
+
+    <label>Why this chapter? <span class="small">(optional — the connection to what you're studying)</span>
+      <textarea name="why_chapter" rows="2">{{ values.get('why_chapter', '') }}</textarea></label>
+
+    <label>Sources <span class="small">(where you found this — links or citations)</span>
+      <textarea name="sources" rows="2">{{ values.get('sources', '') }}</textarea></label>
+
+    <fieldset>
+      <legend>A photo (optional)</legend>
+      <label>Link to a photo
+        <input name="photo_url" value="{{ values.get('photo_url', '') }}"
+               placeholder="https://..."></label>
+      {% if coll.allow_photo_upload %}
+        <label>...or upload one<input type="file" name="photo_file" accept="image/*"></label>
+      {% endif %}
+      <label>Photo credit / source <span class="small">(optional)</span>
+        <input name="photo_attribution" value="{{ values.get('photo_attribution', '') }}"></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Your name</legend>
+      <label>How to credit you <span class="small">(optional)</span>
+        <input name="contributor_name" value="{{ values.get('contributor_name', '') }}"></label>
+      <label>Show my name as
+        <select name="attribution_mode">
+          {% for m in modes %}
+            <option value="{{ m }}" {{ 'selected' if values.get('attribution_mode') == m }}>{{ m.replace('_', ' ') }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </fieldset>
+
+    <label class="radio"><input type="checkbox" name="license_grant" value="1"
+        {{ 'checked' if values.get('license_grant') }}>
+      I wrote this myself and give permission to publish it under
+      <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. *</label>
+
+    <button type="submit">Submit for review</button>
+  </form>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Start a class collection — {{ site_name }}{% endblock %}
+{% block content %}
+  <h1>Start a class collection</h1>
+  <p class="muted">One page, no account. You'll get a private link to manage submissions and a
+    student link to hand out. Keep the private link safe — anyone with it can moderate your class.</p>
+
+  {% if error %}<p class="formerror">{{ error }}</p>{% endif %}
+
+  <form method="post" action="{{ url_for('manage.create') }}" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label>Class name
+      <input name="name" required placeholder="e.g. Physics 121, Fall 2026"
+             value="{{ request.form.name or '' }}">
+    </label>
+    <label>Your name <span class="small">(optional)</span>
+      <input name="teacher_name" value="{{ request.form.teacher_name or '' }}">
+    </label>
+    <label>Your email <span class="small">(optional — only used to email your links back to you)</span>
+      <input type="email" name="teacher_email" value="{{ request.form.teacher_email or '' }}">
+    </label>
+
+    <fieldset>
+      <legend>Which textbook is your class using?</legend>
+      <label class="radio"><input type="radio" name="textbook_mode" value="builtin" checked>
+        Pick a built-in textbook</label>
+      <select name="textbook_slug">
+        <option value="">-- choose --</option>
+        {% for tb in textbooks %}
+          <option value="{{ tb.slug }}">{{ tb.title }}{% if tb.edition %} ({{ tb.edition }}){% endif %}</option>
+        {% endfor %}
+      </select>
+
+      <label class="radio"><input type="radio" name="textbook_mode" value="chapters">
+        Paste my chapter titles (one per line)</label>
+      <textarea name="chapter_lines" rows="4"
+        placeholder="Motion&#10;Forces&#10;Energy&#10;...">{{ request.form.chapter_lines or '' }}</textarea>
+
+      <label class="radio"><input type="radio" name="textbook_mode" value="csv">
+        Paste a full table of contents (CSV: chapter,section,topics)</label>
+      <textarea name="toc_csv" rows="4"
+        placeholder="1,,Motion&#10;2,,Forces">{{ request.form.toc_csv or '' }}</textarea>
+
+      <label>Custom textbook title <span class="small">(for the two paste options)</span>
+        <input name="custom_title" value="{{ request.form.custom_title or '' }}"></label>
+      <label>Custom textbook author <span class="small">(optional)</span>
+        <input name="custom_author" value="{{ request.form.custom_author or '' }}"></label>
+    </fieldset>
+
+    <label class="radio"><input type="checkbox" name="share_default">
+      Offer students the option to share their work with the communal site (you still approve each one)</label>
+
+    <button type="submit">Create my class</button>
+  </form>
+{% endblock %}

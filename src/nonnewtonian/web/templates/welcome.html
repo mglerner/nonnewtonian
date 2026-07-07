@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Your class is ready — {{ site_name }}{% endblock %}
+{% block content %}
+  <h1>"{{ coll.name }}" is ready</h1>
+  <p class="muted">Two links. The <strong>student link</strong> is for your class; the
+    <strong>management link</strong> is yours alone. We don't store the management link in a
+    readable form, so save it now — email it to yourself with the button below.</p>
+
+  <div class="linkbox">
+    <h2>Student submission link</h2>
+    <p class="small">Share this with your students.</p>
+    <div class="copyrow">
+      <input readonly value="{{ student_url }}" id="student-url">
+      <button type="button" data-copy="student-url">Copy</button>
+    </div>
+  </div>
+
+  <div class="linkbox warn">
+    <h2>Your private management link</h2>
+    <p class="small">Keep this to yourself. Anyone with it can approve, reject, and delete.</p>
+    <div class="copyrow">
+      <input readonly value="{{ manage_url }}" id="manage-url">
+      <button type="button" data-copy="manage-url">Copy</button>
+    </div>
+    <p class="actions">
+      <a class="btn" href="{{ mailto }}">Email both links to myself</a>
+      <a class="btn" href="{{ url_for('manage.kit', token=token) }}">Download a class kit (.txt)</a>
+    </p>
+  </div>
+
+  <p class="actions"><a class="btn primary" href="{{ url_for('manage.dashboard', token=token) }}">Go to my dashboard &rarr;</a></p>
+
+  <script>
+    document.querySelectorAll('[data-copy]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var el = document.getElementById(b.dataset.copy);
+        el.select(); navigator.clipboard.writeText(el.value);
+        var t = b.textContent; b.textContent = 'Copied!';
+        setTimeout(function () { b.textContent = t; }, 1200);
+      });
+    });
+  </script>
+{% endblock %}

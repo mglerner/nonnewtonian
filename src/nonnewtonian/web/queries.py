@@ -218,3 +218,41 @@ def textbook_chapters(conn, textbook_id: int) -> list[ChapterBlock]:
 def wanted_scientists(conn) -> list[dict]:
     return [dict(r) for r in conn.execute(
         "SELECT * FROM wanted_scientists ORDER BY name COLLATE NOCASE")]
+
+
+# --- class-collection views (scoped to one collection) --------------------
+
+def class_chapters(conn, collection_id: int, textbook_id: int) -> list[ChapterBlock]:
+    """Chapter-indexed view for one class: every chapter of the class's
+    textbook, each with this collection's APPROVED entries placed there."""
+    chapters: list[ChapterBlock] = []
+    by_chapter: dict[int, ChapterBlock] = {}
+    for row in conn.execute(
+        "SELECT DISTINCT chapter, topics FROM toc_rows WHERE textbook_id=? ORDER BY sort_order",
+        (textbook_id,),
+    ):
+        block = ChapterBlock(chapter=row["chapter"], topics=row["topics"])
+        chapters.append(block)
+        by_chapter[row["chapter"]] = block
+    seen = {c.chapter: set() for c in chapters}
+    for row in conn.execute(
+        "SELECT e.*, pl.chapter AS placed_chapter FROM entries e "
+        "JOIN placements pl ON pl.entry_id=e.id "
+        "WHERE e.collection_id=? AND e.status='approved' AND pl.textbook_id=? "
+        "ORDER BY e.scientist_name COLLATE NOCASE",
+        (collection_id, textbook_id),
+    ):
+        block = by_chapter.get(row["placed_chapter"])
+        if block is None or row["scientist_slug"] in seen[block.chapter]:
+            continue
+        seen[block.chapter].add(row["scientist_slug"])
+        block.entries.append(_row_to_entry(conn, row))
+    return chapters
+
+
+def approved_class_entry(conn, collection_id: int, entry_id: int) -> DisplayEntry | None:
+    row = conn.execute(
+        "SELECT * FROM entries WHERE id=? AND collection_id=? AND status='approved'",
+        (entry_id, collection_id)).fetchone()
+    return _row_to_entry(conn, row) if row else None
+

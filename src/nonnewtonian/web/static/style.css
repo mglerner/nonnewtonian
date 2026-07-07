@@ -125,3 +125,36 @@ form.inline { display: inline; }
   .entry { flex-direction: column; }
   .entry .portrait, .entry .portrait img, .entry .portrait .nophoto { width: 100%; max-width: 240px; }
 }
+
+/* --- M4: class collections (forms, welcome, dashboard) --- */
+form.stack { display: flex; flex-direction: column; gap: .9rem; max-width: 42rem; }
+form.stack label, fieldset label { display: block; font-weight: 600; }
+form.stack input[type=text], form.stack input[type=email], form.stack input:not([type]),
+form.stack select, form.stack textarea, fieldset input:not([type]), fieldset select, fieldset textarea {
+  display: block; width: 100%; margin-top: .25rem; font: inherit; font-weight: 400;
+  padding: .45rem .55rem; border: 1px solid var(--rule); border-radius: 6px;
+  background: var(--card); color: inherit; box-sizing: border-box;
+}
+form.stack textarea, fieldset textarea { resize: vertical; }
+fieldset { border: 1px solid var(--rule); border-radius: 10px; padding: .8rem 1rem; }
+fieldset legend { font-weight: 700; color: var(--accent); padding: 0 .4rem; }
+label.radio { font-weight: 400; display: flex; align-items: baseline; gap: .4rem; }
+label.radio input { width: auto; display: inline; margin: 0; }
+.formerror { background: #fbe9e7; border: 1px solid #d9534f; color: #7a1f1a; padding: .6rem .8rem; border-radius: 8px; }
+@media (prefers-color-scheme: dark) { .formerror { background: #3a1512; color: #f3c9c4; } }
+:root[data-theme="dark"] .formerror { background: #3a1512; color: #f3c9c4; }
+:root[data-theme="light"] .formerror { background: #fbe9e7; color: #7a1f1a; }
+
+.linkbox { border: 1px solid var(--rule); border-radius: 10px; padding: .9rem 1.1rem; margin: 1rem 0; background: var(--card); }
+.linkbox.warn { border-color: var(--accent); }
+.copyrow { display: flex; gap: .5rem; }
+.copyrow input { flex: 1; font: inherit; padding: .4rem .55rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); color: inherit; }
+.btn { display: inline-block; padding: .35rem .8rem; border: 1px solid var(--accent); border-radius: 6px; color: var(--accent); text-decoration: none; }
+.btn.primary { background: var(--accent); color: #fff; }
+.btn:hover { text-decoration: none; }
+.review { border: 1px solid var(--rule); border-radius: 10px; padding: .6rem 1rem; margin: .8rem 0; }
+button.danger { background: #d9534f; border-color: #d9534f; }
+.danger-h { color: #b0322e; }
+textarea.mono, .mono { font-family: ui-monospace, Menlo, monospace; font-size: .8rem; }
+.hp { position: absolute; left: -9999px; height: 0; overflow: hidden; }
+body.embed header.site, body.embed footer.site { display: none; }
