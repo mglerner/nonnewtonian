@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nonnewtonian"
+version = "0.1.0"
+description = "NonNewtonian Physicists: parsing, textbook placement, and slide generation for scientist entries"
+readme = "README.md"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "Michael G. Lerner" }]
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31",
+    "Pillow>=10.0",
+    "python-pptx>=0.6.23",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
