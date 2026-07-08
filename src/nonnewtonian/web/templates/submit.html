@@ -34,13 +34,13 @@
         <input name="section" value="{{ values.get('section', '') }}"></label>
     {% endif %}
 
-    <label>Description * <span class="small">(a paragraph or two — what they did and why it matters)</span>
+    <label>Description * <span class="small">(a paragraph or two: what they did and why it matters)</span>
       <textarea name="description" rows="6" required>{{ values.get('description', '') }}</textarea></label>
 
-    <label>Why this chapter? <span class="small">(optional — the connection to what you're studying)</span>
+    <label>Why this chapter? <span class="small">(optional: the connection to what you're studying)</span>
       <textarea name="why_chapter" rows="2">{{ values.get('why_chapter', '') }}</textarea></label>
 
-    <label>Sources <span class="small">(where you found this — links or citations)</span>
+    <label>Sources <span class="small">(where you found this: links or citations)</span>
       <textarea name="sources" rows="2">{{ values.get('sources', '') }}</textarea></label>
 
     <fieldset>

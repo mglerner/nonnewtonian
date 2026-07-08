@@ -10,7 +10,7 @@
     <p class="actions">
       <a href="{{ url_for('cls.deck', slug=coll.slug) }}">Download the whole-class slide deck (.pptx)</a>
     </p>
-    <p class="small muted">Everything below is readable right here — no download needed.</p>
+    <p class="small muted">The full writeups are on this page; the deck link is optional.</p>
 
     {% for ch in chapters %}
       <section class="chapter {% if not ch.entries %}empty{% endif %}">

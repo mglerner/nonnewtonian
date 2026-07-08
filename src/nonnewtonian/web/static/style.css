@@ -1,10 +1,10 @@
-/* NonNewtonian Physicists — editorial / academic. One stylesheet, no CDN. */
+/* NonNewtonian Physicists stylesheet. */
 :root {
   --bg: #fbfaf7;
   --fg: #1f1b16;
   --muted: #6b645a;
   --rule: #e4dfd5;
-  --accent: #7a2e1d;      /* deep brick — scholarly, warm */
+  --accent: #7a2e1d;
   --accent-soft: #f3ece6;
   --link: #9a3a24;
   --card: #ffffff;
@@ -50,19 +50,12 @@ main .wrap { padding-top: 1.4rem; padding-bottom: 2rem; }
 
 /* landing */
 .lede { font-size: 1.25rem; color: var(--fg); max-width: 40rem; }
-.paths { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.4rem 0; }
-.path {
-  flex: 1 1 15rem; border: 1px solid var(--rule); border-radius: 10px;
-  padding: 1.1rem 1.2rem; background: var(--card); text-decoration: none; color: inherit;
-}
-.path:hover { border-color: var(--accent); text-decoration: none; }
-.path .t { font-weight: 700; color: var(--accent); font-size: 1.1rem; }
 
 /* generic cards / lists */
 .cardlist { list-style: none; padding: 0; margin: 1rem 0; }
 .cardlist li { border-bottom: 1px solid var(--rule); padding: .6rem 0; }
 
-/* chapter-indexed textbook view — the flagship */
+/* chapter-indexed textbook view */
 .chapter { margin: 1.6rem 0; }
 .chapter > .chhead {
   border-bottom: 2px solid var(--rule); padding-bottom: .3rem; margin-bottom: .6rem;

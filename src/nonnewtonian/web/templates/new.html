@@ -2,8 +2,9 @@
 {% block title %}Start a class collection — {{ site_name }}{% endblock %}
 {% block content %}
   <h1>Start a class collection</h1>
-  <p class="muted">One page, no account. You'll get a private link to manage submissions and a
-    student link to hand out. Keep the private link safe — anyone with it can moderate your class.</p>
+  <p class="muted">Fill this out and you'll get two links: a private one for managing submissions, and
+    a student one to hand out. There is no account to create. Keep the private link safe, since anyone
+    who has it can moderate your class.</p>
 
   {% if error %}<p class="formerror">{{ error }}</p>{% endif %}
 
@@ -17,7 +18,7 @@
     <label>Your name <span class="small">(optional)</span>
       <input name="teacher_name" value="{{ request.form.teacher_name or '' }}">
     </label>
-    <label>Your email <span class="small">(optional — only used to email your links back to you)</span>
+    <label>Your email <span class="small">(optional: only used to email your links back to you)</span>
       <input type="email" name="teacher_email" value="{{ request.form.teacher_email or '' }}">
     </label>
 

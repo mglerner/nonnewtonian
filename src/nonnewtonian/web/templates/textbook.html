@@ -10,8 +10,8 @@
   <p class="actions">
     <a href="{{ url_for('public.textbook_deck', slug=textbook.slug) }}">Download the whole-book slide deck (.pptx)</a>
   </p>
-  <p class="small muted">Everything below is readable right here — no download needed. The slide links
-    are just for dropping a scientist into a lecture.</p>
+  <p class="small muted">The full writeups are on this page. The slide links are only there if you want
+    a .pptx to put up in class.</p>
 
   {% for ch in chapters %}
     <section class="chapter {% if not ch.entries %}empty{% endif %}">
@@ -22,8 +22,8 @@
       {% if ch.entries %}
         {% for entry in ch.entries %}{{ entry_card(entry) }}{% endfor %}
       {% else %}
-        <p class="gap">No one here yet — a scientist who belongs in this chapter could be your
-          class's next contribution.</p>
+        <p class="gap">No one here yet. If you know a scientist whose work belongs in this chapter,
+          that would be a good one to add.</p>
       {% endif %}
     </section>
   {% endfor %}

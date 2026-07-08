@@ -5,8 +5,8 @@
   <p class="muted">Your submission for <strong>{{ name }}</strong> is in. Your teacher will review it
     before it appears on the class page.</p>
   {% if photo_warning %}
-    <p class="formerror">One note: your photo didn't go through ({{ photo_warning }}). The rest of
-      your submission was saved — you can mention the photo to your teacher.</p>
+    <p class="formerror">Your photo didn't upload ({{ photo_warning }}), but everything else was
+      saved. You can add it later or mention it to your teacher.</p>
   {% endif %}
   <p class="actions">
     <a class="btn" href="{{ url_for('cls.submit', slug=coll.slug) }}">Add another</a>

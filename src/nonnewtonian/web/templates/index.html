@@ -1,23 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Scientists in the textbook you already teach</h1>
-  <p class="lede">Every introductory physics course marches through a progression of physicists who,
-    to within rounding error, all look like Newton. This is a growing, teacher-moderated collection
-    of scientists who don't — each one mapped to the exact chapter of a real textbook, ready to read
-    in your browser or drop into a lecture.</p>
-
-  <div class="paths">
-    <a class="path" href="{{ url_for('public.textbooks') }}">
-      <div class="t">Browse the collection</div>
-      <p class="small">Pick a textbook and read straight down the chapters. No account, no download,
-        nothing to install.</p>
-    </a>
-    <a class="path" href="{{ url_for('public.for_teachers') }}">
-      <div class="t">Run it with your class</div>
-      <p class="small">Have your students research and place scientists in your own textbook. (Class
-        collections are coming soon.)</p>
-    </a>
-  </div>
+  <h1>Physicists who don't look like Newton</h1>
+  <p class="lede">Open an intro physics book and the physicists you meet (Newton, Galileo, Faraday,
+    Einstein) pretty much all look like Newton. This is a list of the ones who don't, each one placed
+    at the chapter of a real textbook where their work fits.</p>
+  <p>Pick a textbook below and read down the chapters. You don't need an account. Teaching a course?
+    You can have your own students research and place scientists in your own textbook. See
+    <a href="{{ url_for('public.for_teachers') }}">For teachers</a>.</p>
 
   <h2>Textbooks</h2>
   <ul class="cardlist">
