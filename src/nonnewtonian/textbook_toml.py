@@ -10,9 +10,9 @@ undo a CSV export bug), it can't carry per-textbook metadata, and it doesn't
 diff cleanly.
 
 This module reads a single ``<slug>.toml`` per textbook that consolidates all
-of it. It is not yet wired into ``seed_import``; the accompanying test proves a
-TOML file loads to exactly the same metadata + TOC rows + aliases as the
-current manifest-entry + CSV, so the migration can be done with confidence.
+of it. ``seed_import`` loads these directly (one file per built-in textbook in
+``data/textbooks/``), plus ``data/collection.toml`` for the collection-level
+seed data (wanted scientists) that used to live in ``manifest.json``.
 
 Format (see ``data/textbooks/knight-calc-3rd.toml``)::
 
@@ -98,3 +98,23 @@ def load_textbook_toml(path: str | Path) -> TextbookDef:
         aliases=aliases,
         toc=toc,
     )
+
+
+def load_collection_toml(path: str | Path) -> dict:
+    """Collection-level seed data that isn't tied to one textbook. Returns
+    ``{"wanted": [{"name","note","source"}...], "planned": [{"slug","note"}...]}``
+    shaped like the old manifest so the importer consumes it unchanged.
+    A missing file is fine (returns empty lists)."""
+    path = Path(path)
+    if not path.exists():
+        return {"wanted": [], "planned": []}
+    data = tomllib.loads(path.read_text(encoding="utf-8"))
+    wanted = [
+        {"name": w["name"], "note": w.get("note"), "source": w.get("source")}
+        for w in data.get("wanted_scientist", [])
+    ]
+    planned = [
+        {"slug": p.get("slug"), "note": p.get("note")}
+        for p in data.get("planned_textbook", [])
+    ]
+    return {"wanted": wanted, "planned": planned}

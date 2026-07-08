@@ -1,5 +1,4 @@
-# Canonical built-in textbook (prototype TOML source-of-truth format).
-# Replaces this textbook's manifest.json entry + knight-calc-3rd.csv.
+# Canonical built-in textbook (TOML source of truth).
 # Teacher-pasted TOCs still arrive as CSV via /new (see toc.py).
 
 slug = "knight-calc-3rd"

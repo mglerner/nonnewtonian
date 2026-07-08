@@ -12,7 +12,7 @@ from nonnewtonian.web import create_app
 from conftest import SCIENTISTS
 
 NOW = "2026-07-07T00:00:00+00:00"
-MANIFEST = Path(__file__).resolve().parents[1] / "data" / "textbooks" / "manifest.json"
+TEXTBOOKS = Path(__file__).resolve().parents[1] / "data" / "textbooks"
 TOKEN = "test-admin"
 
 
@@ -20,7 +20,7 @@ TOKEN = "test-admin"
 def app(tmp_path):
     db_path = tmp_path / "web.db"
     conn = db_mod.init_db(db_path, now=NOW)
-    seed_import(conn, scientists_dir=SCIENTISTS, manifest_path=MANIFEST,
+    seed_import(conn, scientists_dir=SCIENTISTS, textbooks_dir=TEXTBOOKS,
                 photo_dir=tmp_path / "photos", now=NOW, decks_dir=None, fetch_photos=False)
     conn.close()
     app = create_app({

@@ -1,39 +1,47 @@
-"""The TOML source-of-truth format must be a LOSSLESS replacement for a
-textbook's manifest.json entry + its .csv TOC. If this holds, the migration
-away from CSV+JSON can be done mechanically."""
-import json
+"""The per-textbook TOML files are the source of truth for built-in
+textbooks. These lock the format and the parsed contents so an accidental
+edit (a dropped chapter, a broken alias) fails loudly."""
 import pathlib
 
 import pytest
 
-from nonnewtonian.textbook_toml import TextbookTomlError, load_textbook_toml
-from nonnewtonian.toc import load_toc_file
+from nonnewtonian.textbook_toml import (
+    TextbookTomlError,
+    load_collection_toml,
+    load_textbook_toml,
+)
 
-DATA = pathlib.Path(__file__).resolve().parents[1] / "data/textbooks"
-
-
-def _manifest_entry(slug):
-    manifest = json.loads((DATA / "manifest.json").read_text(encoding="utf-8"))
-    return next(t for t in manifest["textbooks"] if t["slug"] == slug)
+DATA = pathlib.Path(__file__).resolve().parents[1] / "data" / "textbooks"
 
 
-def test_toml_matches_manifest_and_csv_exactly():
-    slug = "knight-calc-3rd"
-    tb = load_textbook_toml(DATA / f"{slug}.toml")
-    entry = _manifest_entry(slug)
+def test_every_builtin_textbook_toml_loads_and_is_ordered():
+    tomls = sorted(DATA.glob("*.toml"))
+    assert {p.stem for p in tomls} == {"knight-calc-3rd", "knight-college-2nd", "mandi-4th"}
+    for p in tomls:
+        tb = load_textbook_toml(p)
+        assert tb.slug == p.stem
+        assert tb.title and tb.discipline == "physics"
+        assert tb.toc, "TOC must not be empty"
+        chapters = [r.chapter for r in tb.toc]
+        assert chapters == sorted(chapters), f"{p.name} chapters out of order"
 
-    # metadata
-    assert tb.slug == entry["slug"]
-    assert tb.title == entry["title"]
-    assert tb.author == entry["author"]
-    assert tb.edition == entry["edition"]
-    assert tb.discipline == entry["discipline"]
 
-    # aliases (same shape the importer already consumes)
-    assert tb.aliases == entry["aliases"]
+def test_knight_calc_3rd_exact_contents():
+    tb = load_textbook_toml(DATA / "knight-calc-3rd.toml")
+    assert tb.title.startswith("Physics for Scientists and Engineers")
+    assert tb.author == "Randall D. Knight"
+    assert tb.edition == "3rd Edition"
+    assert len(tb.toc) == 42
+    assert tb.toc[0].chapter == 1 and tb.toc[0].topics == "Motion, Velocity, Acceleration"
+    # the "3rd edition" shorthand alias is marked ambiguous
+    ambiguous = {a["alias"]: a["ambiguous"] for a in tb.aliases}
+    assert ambiguous["Knight, 3rd edition"] == 1
 
-    # table of contents: identical TocRows, in order, to the CSV
-    assert tb.toc == load_toc_file(DATA / f"{slug}.csv")
+
+def test_collection_toml_has_the_six_wanted_scientists():
+    col = load_collection_toml(DATA.parent / "collection.toml")
+    assert len(col["wanted"]) == 6
+    assert all(w["name"] for w in col["wanted"])
 
 
 def test_missing_required_field_is_a_clear_error(tmp_path):

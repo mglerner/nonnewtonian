@@ -1,0 +1,40 @@
+# Collection-level seed data (not tied to one textbook).
+# Moves here from the retired manifest.json.
+
+[[wanted_scientist]]
+name = "En'heduanna"
+note = "Earliest known named author; astronomical observations."
+source = "README backlog"
+
+[[wanted_scientist]]
+name = "Zhang Heng"
+note = "Seismoscope, astronomy."
+source = "README backlog"
+
+[[wanted_scientist]]
+name = "Henrietta Swan Leavitt"
+note = "Cepheid period-luminosity relation."
+source = "README backlog"
+
+[[wanted_scientist]]
+name = "Wu-Chung Lee"
+note = "Listed in the original README backlog."
+source = "README backlog"
+
+[[wanted_scientist]]
+name = "Abdus Salam"
+note = "Electroweak unification; first Muslim Nobel laureate in science."
+source = "README backlog"
+
+[[wanted_scientist]]
+name = "Ibn Sahl"
+note = "Law of refraction, predating Snell."
+source = "README backlog"
+
+[[planned_textbook]]
+slug = "openstax-university-physics"
+note = "Deferred: OpenStax University Physics ships as 3 volumes that each restart chapter numbering, so it needs a per-volume modeling decision AND verified per-volume TOCs. Only Volume 2 was fully verifiable from static sources on 2026-07-07; not shipping a partially-guessed TOC (Michael's no-known-wrong-results rule). Acquire complete per-volume TOCs and add as openstax-university-physics-v{1,2,3}."
+
+[[planned_textbook]]
+slug = "openstax-college-physics"
+note = "Deferred alongside University Physics: single-volume, so simpler, but the full chapter list was not verified from a static source on 2026-07-07. Acquire and add. Big adoption lever once present (OpenStax is free/openly licensed)."

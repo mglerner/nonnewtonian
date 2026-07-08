@@ -10,7 +10,6 @@ from nonnewtonian import collections_repo as repo
 from nonnewtonian.web import create_app
 
 NOW = "2026-07-07T00:00:00+00:00"
-MANIFEST = Path(__file__).resolve().parents[1] / "data" / "textbooks" / "manifest.json"
 
 
 @pytest.fixture

@@ -22,7 +22,7 @@ from .importer import seed_import
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DEFAULT_SCIENTISTS = _REPO_ROOT / "tests" / "fixtures" / "scientists"
-_DEFAULT_MANIFEST = _REPO_ROOT / "data" / "textbooks" / "manifest.json"
+_DEFAULT_TEXTBOOKS = _REPO_ROOT / "data" / "textbooks"
 
 
 def _default_decks_dir() -> str | None:
@@ -72,7 +72,7 @@ def cmd_seed_import(args: argparse.Namespace) -> int:
         with tempfile.TemporaryDirectory() as tmp:
             conn = db_mod.init_db(Path(tmp) / "dry.db", now=now)
             report = seed_import(
-                conn, scientists_dir=Path(args.scientists), manifest_path=Path(args.manifest),
+                conn, scientists_dir=Path(args.scientists), textbooks_dir=Path(args.textbooks),
                 photo_dir=Path(tmp) / "photos", now=now, decks_dir=decks_dir,
                 fetch_photos=False,
             )
@@ -85,7 +85,7 @@ def cmd_seed_import(args: argparse.Namespace) -> int:
     conn = db_mod.init_db(args.db, now=now)
     db_mod.assert_wal(conn)
     report = seed_import(
-        conn, scientists_dir=Path(args.scientists), manifest_path=Path(args.manifest),
+        conn, scientists_dir=Path(args.scientists), textbooks_dir=Path(args.textbooks),
         photo_dir=photo_dir, now=now, decks_dir=decks_dir,
         fetch_photos=not args.no_photos,
     )
@@ -102,7 +102,8 @@ def build_parser() -> argparse.ArgumentParser:
     seed = sub.add_parser("seed-import", help="import the original corpus as communal-pending seeds")
     seed.add_argument("--db", default="app.db", help="SQLite database path")
     seed.add_argument("--scientists", default=str(_DEFAULT_SCIENTISTS))
-    seed.add_argument("--manifest", default=str(_DEFAULT_MANIFEST))
+    seed.add_argument("--textbooks", default=str(_DEFAULT_TEXTBOOKS),
+                      help="dir of per-textbook <slug>.toml files")
     seed.add_argument("--photo-dir", default="data/photos")
     seed.add_argument("--decks-dir", default=_default_decks_dir(),
                       help="original .pptx decks for dead-photo recovery ($NNP_DECKS)")

@@ -1,5 +1,5 @@
-"""Seed importer: load the 39 original scientist files + TOC CSVs into
-the SQLite database as communal-pending entries.
+"""Seed importer: load the 39 original scientist files + the per-textbook
+TOML definitions into the SQLite database as communal-pending entries.
 
 Contract (from the plan and its adversarial review):
   * nothing is silently dropped — unmatched placements are kept with
@@ -28,7 +28,7 @@ from . import photos as photos_mod
 from .parser import Entry, parse_file
 from .placements import parse_placements
 from .slugs import slugify
-from .toc import load_toc_file
+from .textbook_toml import load_collection_toml, load_textbook_toml
 
 # --- correction / flag data, from the 2026-07-07 data-migration audit ---
 
@@ -98,7 +98,7 @@ class SeedReport:
             f"{sum(f.photos_recovered for f in self.files)} recovered from pptx, "
             f"{sum(f.photos_dead for f in self.files)} dead)",
             f"Textbooks loaded: {', '.join(self.textbooks_loaded) or 'none'}",
-            f"Textbooks skipped (missing CSV): {', '.join(self.textbooks_skipped) or 'none'}",
+            f"Textbooks skipped (invalid TOML): {', '.join(self.textbooks_skipped) or 'none'}",
             f"Wanted scientists: {self.wanted_loaded}",
         ]
         return lines
@@ -128,8 +128,11 @@ def _license_notice(filename: str) -> str | None:
     return None
 
 
-def load_textbooks(conn, manifest_path: Path, now: str, report: SeedReport) -> dict[str, int]:
-    """Load/refresh textbooks + toc_rows + aliases from the manifest.
+def load_textbooks(conn, textbooks_dir: Path, collection_path: Path, now: str,
+                   report: SeedReport) -> dict[str, int]:
+    """Load/refresh built-in textbooks + toc_rows + aliases from the per-textbook
+    TOML files in ``textbooks_dir`` (one ``<slug>.toml`` each), plus the
+    collection-level wanted scientists from ``collection_path``.
 
     UPSERTs each textbook by slug so its id is STABLE across re-runs —
     delete+recreate would fire ON DELETE SET NULL on collections and
@@ -138,19 +141,13 @@ def load_textbooks(conn, manifest_path: Path, now: str, report: SeedReport) -> d
     toc_rows/aliases are replaced, then placements are re-linked to the
     fresh toc_rows so no placement.toc_row_id is left dangling.
 
-    Returns {slug: textbook_id}.  Missing/invalid CSVs are skipped."""
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    base = manifest_path.parent
+    Returns {slug: textbook_id}.  Invalid TOMLs are skipped loudly."""
     slug_to_id: dict[str, int] = {}
-    for tb in manifest["textbooks"]:
-        csv_path = base / tb["csv"]
-        if not csv_path.exists():
-            report.textbooks_skipped.append(tb["slug"])
-            continue
+    for toml_path in sorted(textbooks_dir.glob("*.toml")):
         try:
-            rows = load_toc_file(csv_path)
-        except Exception as exc:  # invalid CSV: skip loudly, don't abort seed
-            report.textbooks_skipped.append(f"{tb['slug']} (invalid: {exc})")
+            tb = load_textbook_toml(toml_path)
+        except Exception as exc:  # invalid TOML: skip loudly, don't abort seed
+            report.textbooks_skipped.append(f"{toml_path.stem} (invalid: {exc})")
             continue
         conn.execute(
             "INSERT INTO textbooks(slug,title,author,edition,discipline,is_builtin,created_at)"
@@ -158,23 +155,22 @@ def load_textbooks(conn, manifest_path: Path, now: str, report: SeedReport) -> d
             " ON CONFLICT(slug) DO UPDATE SET"
             "  title=excluded.title, author=excluded.author, edition=excluded.edition,"
             "  discipline=excluded.discipline, is_builtin=1",
-            (tb["slug"], tb["title"], tb.get("author"), tb.get("edition"),
-             tb.get("discipline", "physics"), now),
+            (tb.slug, tb.title, tb.author, tb.edition, tb.discipline, now),
         )
         textbook_id = conn.execute(
-            "SELECT id FROM textbooks WHERE slug=?", (tb["slug"],)
+            "SELECT id FROM textbooks WHERE slug=?", (tb.slug,)
         ).fetchone()[0]
-        slug_to_id[tb["slug"]] = textbook_id
+        slug_to_id[tb.slug] = textbook_id
         # Replace this textbook's TOC and aliases in place (id stays put).
         conn.execute("DELETE FROM toc_rows WHERE textbook_id=?", (textbook_id,))
         conn.execute("DELETE FROM textbook_aliases WHERE textbook_id=?", (textbook_id,))
-        for order, row in enumerate(rows):
+        for order, row in enumerate(tb.toc):
             conn.execute(
                 "INSERT INTO toc_rows(textbook_id,sort_order,chapter,section,topics)"
                 " VALUES(?,?,?,?,?)",
                 (textbook_id, order, row.chapter, row.section, row.topics),
             )
-        for alias in tb.get("aliases", []):
+        for alias in tb.aliases:
             conn.execute(
                 "INSERT INTO textbook_aliases(textbook_id,alias,ambiguous) VALUES(?,?,?)",
                 (textbook_id, alias["alias"], alias["ambiguous"]),
@@ -188,12 +184,12 @@ def load_textbooks(conn, manifest_path: Path, now: str, report: SeedReport) -> d
             " WHERE textbook_id=?",
             (textbook_id, textbook_id),
         )
-        report.textbooks_loaded.append(tb["slug"])
+        report.textbooks_loaded.append(tb.slug)
     conn.commit()
 
     # Seed-scoped: clear only prior SEED wanted rows, never user-added ones.
     conn.execute("DELETE FROM wanted_scientists WHERE is_seed=1")
-    for wanted in manifest.get("wanted_scientists", []):
+    for wanted in load_collection_toml(collection_path)["wanted"]:
         conn.execute(
             "INSERT INTO wanted_scientists(name,note,source,is_seed) VALUES(?,?,?,1)",
             (wanted["name"], wanted.get("note"), wanted.get("source")),
@@ -362,8 +358,9 @@ class SeedRefused(RuntimeError):
     """Re-seed would delete seed entries that live user data depends on."""
 
 
-def seed_import(conn, *, scientists_dir: Path, manifest_path: Path,
-                photo_dir: Path, now: str, decks_dir: Path | None = None,
+def seed_import(conn, *, scientists_dir: Path, textbooks_dir: Path,
+                photo_dir: Path, now: str, collection_path: Path | None = None,
+                decks_dir: Path | None = None,
                 fetch_photos: bool = True, force: bool = False) -> SeedReport:
     """Run the seed.  Safe to re-run: textbooks are UPSERTed by slug (ids
     stable), so re-seeding to pick up new TOCs never orphans a class's
@@ -388,7 +385,9 @@ def seed_import(conn, *, scientists_dir: Path, manifest_path: Path,
     conn.execute("DELETE FROM entries WHERE seed_origin IS NOT NULL")
     conn.commit()
 
-    slug_to_id = load_textbooks(conn, manifest_path, now, report)
+    if collection_path is None:
+        collection_path = textbooks_dir.parent / "collection.toml"
+    slug_to_id = load_textbooks(conn, textbooks_dir, collection_path, now, report)
     photo_dir.mkdir(parents=True, exist_ok=True)
 
     for path in sorted(scientists_dir.glob("*.txt")):

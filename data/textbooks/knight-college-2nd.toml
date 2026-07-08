@@ -1,0 +1,143 @@
+# Canonical built-in textbook (TOML source of truth).
+# Teacher-pasted TOCs still arrive as CSV via /new (see toc.py).
+
+slug = "knight-college-2nd"
+title = "College Physics: A Strategic Approach"
+author = "Randall D. Knight, Brian Jones, Stuart Field"
+edition = "2nd Edition"
+discipline = "physics"
+
+# Free-text names that match a placement line to this book.
+# ambiguous = true means too generic to auto-match on its own.
+[[alias]]
+text = "Knight, College Physics: A Strategic Approach, 2nd Edition"
+ambiguous = false
+
+[[alias]]
+text = "Knight, College Physics"
+ambiguous = false
+
+[[alias]]
+text = "Knight, 2nd edition"
+ambiguous = true
+
+# Table of contents, in order. 'section' is optional.
+[[chapter]]
+number = 1
+topics = "Representing Motion"
+
+[[chapter]]
+number = 2
+topics = "Motion in One Dimension"
+
+[[chapter]]
+number = 3
+topics = "Vectors and Motion in Two Dimensions"
+
+[[chapter]]
+number = 4
+topics = "Forces and Newton's Laws of Motion"
+
+[[chapter]]
+number = 5
+topics = "Applying Newton's Laws"
+
+[[chapter]]
+number = 6
+topics = "Circular Motion, Orbits, and Gravity"
+
+[[chapter]]
+number = 7
+topics = "Rotational Motion"
+
+[[chapter]]
+number = 8
+topics = "Equilibrium and Elasticity"
+
+[[chapter]]
+number = 9
+topics = "Momentum"
+
+[[chapter]]
+number = 10
+topics = "Energy and Work"
+
+[[chapter]]
+number = 11
+topics = "Using Energy"
+
+[[chapter]]
+number = 12
+topics = "Thermal Properties of Matter"
+
+[[chapter]]
+number = 13
+topics = "Fluids"
+
+[[chapter]]
+number = 14
+topics = "Oscillations"
+
+[[chapter]]
+number = 15
+topics = "Traveling Waves and Sound"
+
+[[chapter]]
+number = 16
+topics = "Superposition and Standing Waves"
+
+[[chapter]]
+number = 17
+topics = "Wave Optics"
+
+[[chapter]]
+number = 18
+topics = "Ray Optics"
+
+[[chapter]]
+number = 19
+topics = "Optical Instruments"
+
+[[chapter]]
+number = 20
+topics = "Electric Fields and Forces"
+
+[[chapter]]
+number = 21
+topics = "Electric Potential"
+
+[[chapter]]
+number = 22
+topics = "Current and Resistance"
+
+[[chapter]]
+number = 23
+topics = "Circuits"
+
+[[chapter]]
+number = 24
+topics = "Magnetic Fields and Forces"
+
+[[chapter]]
+number = 25
+topics = "Electromagnetic Induction and Electromagnetic Waves"
+
+[[chapter]]
+number = 26
+topics = "AC Electricity"
+
+[[chapter]]
+number = 27
+topics = "Relativity"
+
+[[chapter]]
+number = 28
+topics = "Quantum Physics"
+
+[[chapter]]
+number = 29
+topics = "Atoms and Molecules"
+
+[[chapter]]
+number = 30
+topics = "Nuclear Physics"

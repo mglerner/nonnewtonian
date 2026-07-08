@@ -15,14 +15,14 @@ from nonnewtonian.importer import seed_import
 from conftest import FIXTURES, SCIENTISTS
 
 NOW = "2026-07-07T00:00:00+00:00"
-MANIFEST = Path(__file__).resolve().parents[1] / "data" / "textbooks" / "manifest.json"
+TEXTBOOKS = Path(__file__).resolve().parents[1] / "data" / "textbooks"
 
 
 @pytest.fixture
 def seeded(tmp_path):
     conn = db_mod.init_db(tmp_path / "seed.db", now=NOW)
     report = seed_import(
-        conn, scientists_dir=SCIENTISTS, manifest_path=MANIFEST,
+        conn, scientists_dir=SCIENTISTS, textbooks_dir=TEXTBOOKS,
         photo_dir=tmp_path / "photos", now=NOW, decks_dir=None, fetch_photos=False,
     )
     return conn, report
@@ -147,7 +147,7 @@ def test_wanted_list_seeded(seeded):
 
 def test_reimport_is_idempotent(tmp_path):
     conn = db_mod.init_db(tmp_path / "seed.db", now=NOW)
-    kw = dict(scientists_dir=SCIENTISTS, manifest_path=MANIFEST,
+    kw = dict(scientists_dir=SCIENTISTS, textbooks_dir=TEXTBOOKS,
               photo_dir=tmp_path / "photos", now=NOW, decks_dir=None, fetch_photos=False)
     seed_import(conn, **kw)
     first = _count(conn, "SELECT count(*) FROM entries")
@@ -162,7 +162,7 @@ def test_reseed_preserves_live_textbook_links(tmp_path):
     """M2 review (critical): re-seeding must NOT null a class's textbook
     link. Textbooks are UPSERTed by slug, ids stay stable."""
     conn = db_mod.init_db(tmp_path / "seed.db", now=NOW)
-    kw = dict(scientists_dir=SCIENTISTS, manifest_path=MANIFEST,
+    kw = dict(scientists_dir=SCIENTISTS, textbooks_dir=TEXTBOOKS,
               photo_dir=tmp_path / "photos", now=NOW, decks_dir=None, fetch_photos=False)
     seed_import(conn, **kw)
     tb_id = conn.execute("SELECT id FROM textbooks WHERE slug='knight-calc-3rd'").fetchone()[0]
@@ -195,7 +195,7 @@ def test_reseed_refused_when_adopted_lineage_would_break(tmp_path):
     from nonnewtonian.importer import SeedRefused
 
     conn = db_mod.init_db(tmp_path / "seed.db", now=NOW)
-    kw = dict(scientists_dir=SCIENTISTS, manifest_path=MANIFEST,
+    kw = dict(scientists_dir=SCIENTISTS, textbooks_dir=TEXTBOOKS,
               photo_dir=tmp_path / "photos", now=NOW, decks_dir=None, fetch_photos=False)
     seed_import(conn, **kw)
     seed_id = conn.execute("SELECT id FROM entries WHERE seed_origin IS NOT NULL LIMIT 1").fetchone()[0]

@@ -1,0 +1,111 @@
+# Canonical built-in textbook (TOML source of truth).
+# Teacher-pasted TOCs still arrive as CSV via /new (see toc.py).
+
+slug = "mandi-4th"
+title = "Matter and Interactions"
+author = "Ruth W. Chabay, Bruce A. Sherwood"
+edition = "4th Edition"
+discipline = "physics"
+
+# Free-text names that match a placement line to this book.
+# ambiguous = true means too generic to auto-match on its own.
+[[alias]]
+text = "Matter and Interactions 4th Edition"
+ambiguous = false
+
+[[alias]]
+text = "Matter and Interactions"
+ambiguous = false
+
+# Table of contents, in order. 'section' is optional.
+[[chapter]]
+number = 1
+topics = "Interactions and Motion"
+
+[[chapter]]
+number = 2
+topics = "The Momentum Principle"
+
+[[chapter]]
+number = 3
+topics = "The Fundamental Interactions"
+
+[[chapter]]
+number = 4
+topics = "Contact Interactions"
+
+[[chapter]]
+number = 5
+topics = "Determining Forces from Motion"
+
+[[chapter]]
+number = 6
+topics = "The Energy Principle"
+
+[[chapter]]
+number = 7
+topics = "Internal Energy"
+
+[[chapter]]
+number = 8
+topics = "Energy Quantization"
+
+[[chapter]]
+number = 9
+topics = "Translational, Rotational, and Vibrational Energy"
+
+[[chapter]]
+number = 10
+topics = "Collisions"
+
+[[chapter]]
+number = 11
+topics = "Angular Momentum"
+
+[[chapter]]
+number = 12
+topics = "Entropy: Limits on the Possible"
+
+[[chapter]]
+number = 13
+topics = "Electric Field"
+
+[[chapter]]
+number = 14
+topics = "Electric Fields and Matter"
+
+[[chapter]]
+number = 15
+topics = "Electric Field of Distributed Charges"
+
+[[chapter]]
+number = 16
+topics = "Electric Potential"
+
+[[chapter]]
+number = 17
+topics = "Magnetic Field"
+
+[[chapter]]
+number = 18
+topics = "Electric Field and Circuits"
+
+[[chapter]]
+number = 19
+topics = "Circuit Elements"
+
+[[chapter]]
+number = 20
+topics = "Magnetic Force"
+
+[[chapter]]
+number = 21
+topics = "Patterns of Field in Space"
+
+[[chapter]]
+number = 22
+topics = "Faraday's Law"
+
+[[chapter]]
+number = 23
+topics = "Electromagnetic Radiation"
