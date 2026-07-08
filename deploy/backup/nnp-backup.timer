@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily NonNewtonian Physicists backup
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+# Run on next boot if the machine was off at 03:30.
+Persistent=true
+# Spread load / avoid a thundering herd against B2.
+RandomizedDelaySec=900
+
+[Install]
+WantedBy=timers.target
