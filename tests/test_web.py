@@ -71,6 +71,23 @@ def test_textbook_shows_every_chapter_including_gaps(approved_client):
     assert html.count(">Emmy Noether<") == 2        # placed in ch 9 and ch 10
 
 
+def test_textbook_header_counts_distinct_scientists_not_placements(approved_client):
+    # Regression: a scientist placed in 2 chapters (Emmy Noether) must be
+    # counted ONCE in the header, not once per placement. The old code
+    # summed placement cards and claimed more scientists than exist.
+    import re
+    html = approved_client.get("/textbooks/knight-calc-3rd").data.decode()
+    m = re.search(r"(\d+) scientists? placed across", html)
+    assert m, "header count not found"
+    header_count = int(m.group(1))
+    distinct_on_page = len(set(re.findall(r'/scientists/([a-z0-9-]+)"', html)))
+    assert header_count == distinct_on_page      # distinct, not placement sum
+    # and never more than the whole collection
+    total = len(re.findall(r'/scientists/[a-z0-9-]+"',
+                           approved_client.get("/scientists").data.decode()))
+    assert header_count <= total
+
+
 def test_pending_never_leaks_via_direct_id(app):
     # An entry id that exists but is unapproved must 404 on its slide route.
     c = app.test_client()

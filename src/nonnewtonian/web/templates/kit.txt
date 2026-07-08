@@ -24,7 +24,7 @@ Your submission won't appear until I approve it.
 HOW IT WORKS
 ------------
 - Students submit through the link above.
-- You review each submission on your management page before anything is
-  public. Nothing is shown without your approval.
+- You review each submission on your management page; nothing is public
+  until you approve it.
 - Approved scientists appear on your class page, indexed by chapter, and
   you can download a slide or the whole-class deck.

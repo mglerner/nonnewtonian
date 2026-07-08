@@ -62,7 +62,11 @@ def textbook(slug):
     if not tb:
         abort(404)
     chapters = q.textbook_chapters(conn, tb["id"])
-    placed = sum(len(c.entries) for c in chapters)
+    # Count DISTINCT scientists, not placement cards: a scientist placed in
+    # two chapters must not inflate the total (it read "52 scientists" when
+    # only 39 exist). The whole-book deck / chapter view still show every
+    # placement; this header just states how many people are on the page.
+    placed = len({e.slug for c in chapters for e in c.entries})
     return render_template("textbook.html", textbook=tb, chapters=chapters, placed=placed)
 
 
